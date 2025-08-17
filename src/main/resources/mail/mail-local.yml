@@ -1,0 +1,10 @@
+mail:
+  host: smtp.gmail.com
+  protocol: smtp
+  port: 587
+  username: dhkang.repository@gmail.com
+  password:
+  auth: true
+  enable: true
+  debug: true
+  default-encoding: UTF-8

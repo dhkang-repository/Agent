@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration status="INFO">
+    <Properties>
+        <Property name="LOG_PATTERN">[%d{yyyyMMdd HH:mm:ss}{GMT+09}][%-5p][%c{1}][%.8equals{%X{trx_id}}{}{ TRX_ID }][%X{method}][%X{uri}][%X{principal}] %msg%n</Property>
+
+        <Property name="LOG_DIR">./logs</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}"/>
+        </Console>
+
+        <RollingFile name="ServiceFileAppender" fileName="${LOG_DIR}/service.log" filePattern="${LOG_DIR}/service-%d{yyyy-MM-dd}.log">
+            <PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${LOG_DIR}">
+                    <IfFileName glob="*.log"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="ConsoleAppender">
+
+            </AppenderRef>
+        </Root>
+
+        <Logger name="net.ttddyy.dsproxy.listener" level="DEBUG" additivity="false">
+            <AppenderRef ref="ServiceFileAppender" />
+        </Logger>
+
+        <Logger name="org.example.agent" level="INFO" additivity="false">
+            <AppenderRef ref="ServiceFileAppender" >
+                <MarkerFilter marker="SERVICE" onMatch="ACCEPT" onMismatch="DENY"/>
+            </AppenderRef>
+        </Logger>
+
+    </Loggers>
+</Configuration>

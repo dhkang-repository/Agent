@@ -1,0 +1,21 @@
+jpa:
+  persistence:
+    database: mysql
+    dialect: org.hibernate.dialect.MySQLDialect
+    show_sql: false
+    format_sql: false
+    use_sql_comments: false
+    hbm2ddl_auto: none
+    time_zone: UTC
+  datasource:
+    agent:
+      url: jdbc:mysql://localhost:3306?useUnicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&serverTimezone=UTC&collationConnection=utf8mb4_0900_ai_ci
+      username: root
+      password: secret123
+      driver_class_name: com.mysql.cj.jdbc.Driver
+      connection_timeout: 3000
+      validation_timeout: 5000
+      max_lifetime: 600
+      minimum_idle: 10
+      maximum_poolSize: 100
+      initialization_mode : never

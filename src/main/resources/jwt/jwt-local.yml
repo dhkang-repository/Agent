@@ -1,0 +1,4 @@
+jwt:
+  secret-key: CCEYwdU/gvW3d1MJNZF4AE4/FCZpG+75YzYahbZY3Rc=
+  expire-access-token-second: 3600
+  expire-refresh-token-second: 86400
