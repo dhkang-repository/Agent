@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "coin_day_candle", catalog = "agent_db", schema = "agent_db",
+@Table(name = "tbL_coin_day_candle", catalog = "agent_db", schema = "agent_db",
         uniqueConstraints = @UniqueConstraint(name="uk_market_date", columnNames = {"market","candle_date"}))
 public class CoinDayCandleEntity {
     @Id

@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `tbl_auth_user_del`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='삭제 사용자 관리 테이블';
 
-CREATE TABLE IF NOT EXISTS coin_day_candle
+CREATE TABLE IF NOT EXISTS tbl_coin_day_candle
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     market           VARCHAR(20)    NOT NULL, -- 예: KRW-BTC
