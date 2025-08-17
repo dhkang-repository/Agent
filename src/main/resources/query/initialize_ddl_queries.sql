@@ -45,13 +45,13 @@ CREATE TABLE IF NOT EXISTS `tbl_auth_user`
     `provider_type` VARCHAR(8)                                                    NOT NULL DEFAULT 'UN',
     `provider_id`   VARCHAR(128)                                                  NULL,
 
-    `nickname`       VARCHAR(50)   NULL COMMENT '표시명',
-    `phone_number`   VARCHAR(20)   NULL COMMENT '휴대폰',
-    `locale`         VARCHAR(10)   NULL DEFAULT 'ko_KR' COMMENT '사용자 언어/로케일',
-    `timezone`       VARCHAR(40)   NULL DEFAULT 'Asia/Seoul' COMMENT '표준 타임존 ID',
-    `profile_image`  VARCHAR(512)  NULL COMMENT '프로필 이미지 URL',
-    `mkt_opt_in`     TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '마케팅 수신 동의',
-    `svc_opt_in`     TINYINT(1)    NOT NULL DEFAULT 1 COMMENT '서비스 공지 수신 동의',
+    `nickname`      VARCHAR(50)                                                   NULL COMMENT '표시명',
+    `phone_number`  VARCHAR(20)                                                   NULL COMMENT '휴대폰',
+    `locale`        VARCHAR(10)                                                   NULL     DEFAULT 'ko_KR' COMMENT '사용자 언어/로케일',
+    `timezone`      VARCHAR(40)                                                   NULL     DEFAULT 'Asia/Seoul' COMMENT '표준 타임존 ID',
+    `profile_image` VARCHAR(512)                                                  NULL COMMENT '프로필 이미지 URL',
+    `mkt_opt_in`    TINYINT(1)                                                    NOT NULL DEFAULT 0 COMMENT '마케팅 수신 동의',
+    `svc_opt_in`    TINYINT(1)                                                    NOT NULL DEFAULT 1 COMMENT '서비스 공지 수신 동의',
 
     `join_dt`       DATETIME(3)                                                   NOT NULL COMMENT '가입 일시 (yyyy-MM-dd HH:mm:ss)',
     `update_dt`     DATETIME(3)                                                            DEFAULT NULL COMMENT '최근 수정 일시 (yyyy-MM-dd HH:mm:ss)',
@@ -84,3 +84,24 @@ CREATE TABLE IF NOT EXISTS `tbl_auth_user_del`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='삭제 사용자 관리 테이블';
 
+CREATE TABLE IF NOT EXISTS coin_day_candle
+(
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    market           VARCHAR(20)    NOT NULL, -- 예: KRW-BTC
+    candle_date      DATE           NOT NULL, -- 일봉 날짜(로컬/KST 기준 day로 잘라 저장)
+    open_price       DECIMAL(24, 8) NOT NULL,
+    high_price       DECIMAL(24, 8) NOT NULL,
+    low_price        DECIMAL(24, 8) NOT NULL,
+    close_price      DECIMAL(24, 8) NOT NULL,
+    acc_trade_price  DECIMAL(30, 8) NOT NULL,
+    acc_trade_volume DECIMAL(30, 8) NOT NULL,
+    prev_close_price DECIMAL(24, 8) NULL,
+    change_price     DECIMAL(24, 8) NULL,
+    change_rate      DECIMAL(16, 8) NULL,
+    source_ts        BIGINT         NULL,     -- upbit timestamp(밀리초)
+    created_at       DATETIME(3)    NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at       DATETIME(3)    NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    UNIQUE KEY uk_market_date (market, candle_date),
+    KEY idx_market_date (market, candle_date)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;

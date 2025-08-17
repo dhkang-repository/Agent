@@ -8,20 +8,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.agent.global.annotation.WebAdapter;
 import org.example.agent.domain.auth.dto.AuthUserDto;
 import org.example.agent.domain.auth.service.AuthUserService;
+import org.example.agent.entity.auth.AuthUserEntity;
+import org.example.agent.global.annotation.WebAdapter;
 import org.example.agent.global.constrant.LogMarker;
 import org.example.agent.global.dto.ResponseHeader;
 import org.example.agent.global.dto.ResponseResult;
 import org.example.agent.global.security.SecurityAuthUser;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static org.example.agent.global.constrant.GlobalConst.BASE_URL;
 
@@ -67,4 +66,32 @@ public class AuthUserController {
         );
     }
 
+
+    /**
+     * @apiNote 조회 API
+     */
+    @Operation(
+            summary = "사용자 조회 API",
+            description = "사용자를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "", description = "성공",
+                            content = @Content(schema = @Schema(
+                                    implementation = ResponseResult.class
+                            ))),
+            }
+    )
+    @GetMapping("/user/me")
+    @PreAuthorize("hasAnyRole('SS', 'L1')")
+    public ResponseEntity<?> findAuthUsers(@AuthenticationPrincipal SecurityAuthUser securityUser) {
+
+        AuthUserEntity authUserEntity = authUserService.findById(securityUser.getUserId());
+
+        log.info(LogMarker.SERVICE.getMarker(), "SecurityUser : {}", securityUser);
+        return ResponseEntity.ok().body(
+                ResponseResult.of(
+                        ResponseHeader.success(),
+                        authUserEntity
+                )
+        );
+    }
 }

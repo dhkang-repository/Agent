@@ -58,7 +58,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                         || user.getPhoneNumber() == null; // 정책에 맞게 필수값 지정
 
         String redirect = needOnboarding
-                ? successOnboarding  // 프론트 온보딩 페이지
+                ? successRedirect  // 프론트 온보딩 페이지
                 : successRedirect; // 프론트 온보딩 페이지
 
         // JWT 발급 + DB 저장 (AuthTokenEntity)
