@@ -56,6 +56,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     testImplementation 'org.springframework.restdocs:spring-restdocs-webtestclient'
 
+    // ## REDIS
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.apache.commons:commons-pool2'
+
     // ## SECURITY
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
@@ -129,6 +133,10 @@ dependencies {
     // ## SWAGGER UI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5'
+
+    // ## Kafka
+    implementation "org.springframework.kafka:spring-kafka" // Kafka를 활용하기 위한 라이브러리
+    implementation "org.apache.kafka:kafka-streams" // Kafka의 메시지 및 스트림 처리
 
     // ## TEST
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

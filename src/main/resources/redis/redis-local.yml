@@ -1,0 +1,19 @@
+# src/main/resources/redis/redis-local.yml
+spring:
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000         # 600초(10분) 캐시 TTL 예시
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:} # 비번 없으면 빈 값
+      timeout: 3s
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 3s

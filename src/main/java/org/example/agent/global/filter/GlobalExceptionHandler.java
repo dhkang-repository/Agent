@@ -11,6 +11,7 @@ import org.example.agent.global.dto.ResponseHeader;
 import org.example.agent.global.dto.ResponseResult;
 import org.example.agent.global.exception.DefineException;
 import org.example.agent.global.exception.JwtAuthenticationException;
+import org.example.agent.global.util.ExceptionLoggingFunction;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

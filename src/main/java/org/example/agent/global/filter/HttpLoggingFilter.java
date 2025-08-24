@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.agent.global.constrant.LogMarker;
+import org.example.agent.global.util.UrlMethodLoggingFunction;
+import org.example.agent.global.util.UuidLoggingFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;

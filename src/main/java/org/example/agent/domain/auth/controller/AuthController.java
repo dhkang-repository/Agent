@@ -4,15 +4,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.agent.global.annotation.WebAdapter;
+import org.example.agent.config.JwtEncryptProperties;
 import org.example.agent.domain.auth.dto.AuthUserDto;
 import org.example.agent.domain.auth.service.AuthTokenService;
 import org.example.agent.domain.auth.service.AuthUserService;
 import org.example.agent.entity.auth.AuthTokenEntity;
 import org.example.agent.entity.auth.AuthUserEntity;
+import org.example.agent.global.annotation.WebAdapter;
 import org.example.agent.global.constrant.ErrorCode;
 import org.example.agent.global.dto.ResponseHeader;
 import org.example.agent.global.dto.ResponseResult;
@@ -20,6 +22,7 @@ import org.example.agent.global.exception.DefineException;
 import org.example.agent.global.security.SecurityAuthUser;
 import org.example.agent.global.security.TokenEncryptService;
 import org.example.agent.global.security.response.TokenResponse;
+import org.example.agent.global.util.TokenIssueFunction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,7 +42,7 @@ import static org.example.agent.global.constrant.GlobalConst.BASE_URL;
 @RequestMapping(BASE_URL)
 @RequiredArgsConstructor
 public class AuthController {
-
+    private final JwtEncryptProperties jwtEncryptProperties;
     private final AuthUserService authUserService;
     private final TokenEncryptService tokenEncryptService;
     private final AuthTokenService authTokenService;
@@ -61,7 +64,8 @@ public class AuthController {
     @PostMapping("/auth/login")
     @Transactional
     public ResponseEntity<ResponseResult<AuthUserDto.AuthUserTokenResponse>> authenticate(
-            @RequestBody @Valid AuthUserDto.AuthUserLoginRequest request){
+            @RequestBody @Valid AuthUserDto.AuthUserLoginRequest request,
+            HttpServletResponse servletResponse) {
 
         AuthUserEntity authUserEntity = authUserService.findByEmail(request.getEmail());
 
@@ -71,18 +75,14 @@ public class AuthController {
             throw new DefineException(ErrorCode.PASSWORD_NOT_VALID);
         }
 
-        return prcessAndGetResponseResultResponseEntity(authUserEntity);
-    }
-
-
-    private ResponseEntity<ResponseResult<AuthUserDto.AuthUserTokenResponse>> prcessAndGetResponseResultResponseEntity(AuthUserEntity authUserEntity) {
-
         TokenResponse newToken = tokenEncryptService.upsertToken(authUserEntity.getId());
 
         authUserEntity.setLastAuthDt(LocalDateTime.now());
         authUserEntity.setLoginCnt(authUserEntity.getLoginCnt()+1);
 
         authUserService.save(authUserEntity);
+
+        TokenIssueFunction.issueToken(newToken, jwtEncryptProperties, servletResponse);
 
         return ResponseEntity.ok().body(
                 ResponseResult.of(
@@ -91,6 +91,7 @@ public class AuthController {
                 )
         );
     }
+
 
 
     /**

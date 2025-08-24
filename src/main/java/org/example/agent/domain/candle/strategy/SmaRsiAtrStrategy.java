@@ -7,7 +7,6 @@ import java.util.List;
 import static org.example.agent.domain.candle.util.IndicatorUtil.*;
 
 public class SmaRsiAtrStrategy implements TradingStrategy {
-
     private final int shortSma;
     private final int longSma;
     private final int rsiPeriod;
@@ -18,9 +17,19 @@ public class SmaRsiAtrStrategy implements TradingStrategy {
     public SmaRsiAtrStrategy() {
         this(20, 50, 14, 14, 2.0, 2.0);
     }
-    public SmaRsiAtrStrategy(int shortSma, int longSma, int rsiPeriod, int atrPeriod, double atrStopMult, double takeProfitR) {
-        this.shortSma = shortSma; this.longSma = longSma; this.rsiPeriod = rsiPeriod;
-        this.atrPeriod = atrPeriod; this.atrStopMult = atrStopMult; this.takeProfitR = takeProfitR;
+
+    public SmaRsiAtrStrategy(int shortSma,
+                             int longSma,
+                             int rsiPeriod,
+                             int atrPeriod,
+                             double atrStopMult,
+                             double takeProfitR) {
+        this.shortSma = shortSma;
+        this.longSma = longSma;
+        this.rsiPeriod = rsiPeriod;
+        this.atrPeriod = atrPeriod;
+        this.atrStopMult = atrStopMult;
+        this.takeProfitR = takeProfitR;
     }
 
     @Override
@@ -29,24 +38,29 @@ public class SmaRsiAtrStrategy implements TradingStrategy {
             return new StrategySignal(Action.HOLD, "not-enough-data");
         }
         int n = candles.size();
-        double[] close = candles.stream().mapToDouble(c -> c.close()).toArray();
-        double[] high  = candles.stream().mapToDouble(c -> c.high()).toArray();
-        double[] low   = candles.stream().mapToDouble(c -> c.low()).toArray();
+        double[] close = candles.stream().mapToDouble(Candle::close).toArray();
+        double[] high  = candles.stream().mapToDouble(Candle::high).toArray();
+        double[] low   = candles.stream().mapToDouble(Candle::low).toArray();
 
         double[] smaS = sma(close, shortSma);
         double[] smaL = sma(close, longSma);
         double[] rsiA = rsi(close, rsiPeriod);
 
-        int i = n - 1; // today, j = yesterday
+        int i = n - 1;
         int j = n - 2;
 
         boolean goldenCross = !Double.isNaN(smaS[j]) && !Double.isNaN(smaL[j])
                 && smaS[j] <= smaL[j] && smaS[i] > smaL[i];
+
         boolean deadCross   = !Double.isNaN(smaS[j]) && !Double.isNaN(smaL[j])
                 && smaS[j] >= smaL[j] && smaS[i] < smaL[i];
 
-        if (goldenCross && rsiA[i] < 60) return new StrategySignal(Action.BUY, "golden-cross & rsi<60");
-        if (deadCross) return new StrategySignal(Action.SELL, "dead-cross");
+        if (goldenCross && rsiA[i] < 60)
+            return new StrategySignal(Action.BUY, "golden-cross & rsi<60");
+
+        if (deadCross)
+            return new StrategySignal(Action.SELL, "dead-cross");
+
         return new StrategySignal(Action.HOLD, "no-edge");
     }
 
@@ -55,10 +69,12 @@ public class SmaRsiAtrStrategy implements TradingStrategy {
         if (candles == null || candles.size() < Math.max(longSma, Math.max(rsiPeriod, atrPeriod)) + 2) {
             return new BacktestResult(List.of(), 0, 0, 0);
         }
+
         int n = candles.size();
-        double[] close = candles.stream().mapToDouble(c -> c.close()).toArray();
-        double[] high  = candles.stream().mapToDouble(c -> c.high()).toArray();
-        double[] low   = candles.stream().mapToDouble(c -> c.low()).toArray();
+
+        double[] close = candles.stream().mapToDouble(Candle::close).toArray();
+        double[] high  = candles.stream().mapToDouble(Candle::high).toArray();
+        double[] low   = candles.stream().mapToDouble(Candle::low).toArray();
 
         double[] smaS = sma(close, shortSma);
         double[] smaL = sma(close, longSma);
@@ -66,10 +82,13 @@ public class SmaRsiAtrStrategy implements TradingStrategy {
         double[] atrA = atr(high, low, close, atrPeriod);
 
         boolean inPos = false;
+
         double entry = 0, stop = 0, takeProfit = 0, peak = 0;
+
         LocalDate entryDate = null;
 
         List<Trade> trades = new ArrayList<>();
+
         double equity = 0;      // 누적 PnL
         double peakEq = 0;      // 드로다운 계산
         double maxDD  = 0;

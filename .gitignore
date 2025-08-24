@@ -9,6 +9,7 @@ src/main/resources/infra/mysql_data
 src/main/resources/infra/query
 src/main/resources/oauth
 src/main/resources/application.yml
+src/main/resources/application-*.yml
 src/main/generated
 
 ### STS ###

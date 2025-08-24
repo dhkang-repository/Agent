@@ -24,13 +24,14 @@ public class CandleSyncService {
 
     private final UpbitClient upbit;
     private final CoinDayCandleRepository repo;
-
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     /** 지정 마켓에 대해 최근 1년치 일봉을 DB에 upsert */
     @Transactional
     public int syncOneYearDailyCandles(String market) {
+
         LocalDate endDate = LocalDate.now(KST);
+
         LocalDate startDate = endDate.minusDays(365);
 
         ZonedDateTime cursorExclusive = endDate.atStartOfDay(KST); // 'to' exclusive
@@ -83,7 +84,9 @@ public class CandleSyncService {
     @Transactional
     public int syncLatestDay(String market) {
         ZonedDateTime tomorrow0 = LocalDate.now(KST).plusDays(1).atStartOfDay(KST);
+
         UpbitDayCandleDto[] arr = upbit.getDayCandles(market, 5, tomorrow0); // 최근 5개 받으면 어제/그제 보정도 가능
+
         int saved = 0;
         if (arr != null) {
             for (UpbitDayCandleDto d : arr) {
@@ -112,7 +115,9 @@ public class CandleSyncService {
 
 
     @Transactional
-    public int syncRangeDailyCandles(String market, LocalDate startDate, LocalDate endDate) {
+    public int syncRangeDailyCandles(String market,
+                                     LocalDate startDate,
+                                     LocalDate endDate) {
         if (startDate == null || endDate == null) throw new IllegalArgumentException("startDate/endDate required");
         if (endDate.isBefore(startDate)) throw new IllegalArgumentException("endDate must be >= startDate");
 

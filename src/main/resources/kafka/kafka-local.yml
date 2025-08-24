@@ -1,0 +1,25 @@
+# src/main/resources/kafka/kafka-local.yml
+spring:
+  kafka:
+    admin:
+      auto-create: true
+    bootstrap-servers: localhost:29092
+    client-id: ${spring.application.name}-local
+    properties:
+      security.protocol: PLAINTEXT
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:agent-local}
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      acks: all
+      retries: 10
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        linger.ms: 10
+        batch.size: 32768
