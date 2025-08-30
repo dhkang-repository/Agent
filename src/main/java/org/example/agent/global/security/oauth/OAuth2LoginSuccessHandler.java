@@ -1,14 +1,12 @@
 package org.example.agent.global.security.oauth;
 
 import lombok.RequiredArgsConstructor;
-import org.example.agent.config.JwtEncryptProperties;
 import org.example.agent.domain.auth.repository.AuthUserRepository;
 import org.example.agent.entity.auth.AuthUserEntity;
 import org.example.agent.global.security.TokenEncryptService;
 import org.example.agent.global.security.response.TokenResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
+import org.example.agent.global.util.TokenIssueFunction;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
@@ -17,13 +15,11 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final JwtEncryptProperties jwtEncryptProperties;
     private final TokenEncryptService tokenEncryptService;
     private final AuthUserRepository authUserRepository;
 
@@ -55,17 +51,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // JWT 발급 + DB 저장 (AuthTokenEntity)
         TokenResponse tokens = tokenEncryptService.createNewToken(user.getId());
 
-        // HttpOnly 쿠키로 전달(보안/간편)
-        ResponseCookie access = ResponseCookie.from("ACCESS_TOKEN", tokens.accessToken())
-                .httpOnly(true).secure(true).sameSite("Lax").path("/")
-                .maxAge(Duration.ofSeconds(jwtEncryptProperties.getExpireAccessTokenSecond())).build();
-
-        ResponseCookie refresh = ResponseCookie.from("REFRESH_TOKEN", tokens.refreshToken())
-                .httpOnly(true).secure(true).sameSite("Lax").path("/")
-                .maxAge(Duration.ofSeconds(jwtEncryptProperties.getExpireRefreshTokenSecond())).build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, access.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, refresh.toString());
+        TokenIssueFunction.issueToken(tokens, response);
 
         // 프론트로 리다이렉트
         response.sendRedirect(successRedirect);
