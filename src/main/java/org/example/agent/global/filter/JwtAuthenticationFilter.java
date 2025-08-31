@@ -12,7 +12,6 @@ import org.example.agent.global.security.TokenEncryptService;
 import org.example.agent.global.security.response.TokenResponse;
 import org.example.agent.global.util.AuthInfoLoggingFunction;
 import org.example.agent.global.util.TokenIssueFunction;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -25,8 +24,8 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final String REFRESH_HEADER = "Refresh-Token";
+    private static final String ACCESS_HEADER = "ACCESS_TOKEN";
+    private static final String REFRESH_HEADER = "REFRESH_TOKEN";
 
     private final TokenEncryptService tokenEncryptService;
 
@@ -104,21 +103,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 요청 헤더에서 토큰 정보 추출
      */
     private TokenResponse resolveToken(HttpServletRequest request) {
-        String access = resolveAccessFromHeader(request);
+        String access = nullIfBlank(request.getHeader(ACCESS_HEADER));
         String refresh = nullIfBlank(request.getHeader(REFRESH_HEADER));
 
         return TokenResponse.builder()
                 .accessToken(access)
                 .refreshToken(refresh)
                 .build();
-    }
-
-    private String resolveAccessFromHeader(HttpServletRequest request) {
-        String bearer = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearer) && bearer.startsWith(BEARER_PREFIX)) {
-            return bearer.substring(BEARER_PREFIX.length());
-        }
-        return null;
     }
 
     private String nullIfBlank(String s) {
