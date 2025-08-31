@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.agent.config.JwtEncryptProperties;
 import org.example.agent.domain.auth.dto.AuthUserDto;
 import org.example.agent.domain.auth.service.AuthTokenService;
 import org.example.agent.domain.auth.service.AuthUserService;
@@ -42,7 +41,6 @@ import static org.example.agent.global.constrant.GlobalConst.BASE_URL;
 @RequestMapping(BASE_URL)
 @RequiredArgsConstructor
 public class AuthController {
-    private final JwtEncryptProperties jwtEncryptProperties;
     private final AuthUserService authUserService;
     private final TokenEncryptService tokenEncryptService;
     private final AuthTokenService authTokenService;
@@ -82,7 +80,7 @@ public class AuthController {
 
         authUserService.save(authUserEntity);
 
-        TokenIssueFunction.issueToken(newToken, jwtEncryptProperties, servletResponse);
+        TokenIssueFunction.issueToken(newToken, servletResponse);
 
         return ResponseEntity.ok().body(
                 ResponseResult.of(

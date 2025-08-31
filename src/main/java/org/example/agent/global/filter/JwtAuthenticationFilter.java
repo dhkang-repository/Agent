@@ -3,18 +3,15 @@ package org.example.agent.global.filter;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.example.agent.config.JwtEncryptProperties;
 import org.example.agent.global.constrant.ErrorCode;
 import org.example.agent.global.exception.JwtAuthenticationException;
 import org.example.agent.global.security.TokenEncryptService;
 import org.example.agent.global.security.response.TokenResponse;
 import org.example.agent.global.util.AuthInfoLoggingFunction;
 import org.example.agent.global.util.TokenIssueFunction;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -27,19 +24,17 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final String ACCESS_COOKIE = "ACCESS_TOKEN";
-    private static final String REFRESH_COOKIE = "REFRESH_TOKEN";
+    private static final String ACCESS_HEADER = "ACCESS_TOKEN";
+    private static final String REFRESH_HEADER = "RefreshToken";
 
     private final TokenEncryptService tokenEncryptService;
-    private final JwtEncryptProperties jwtEncryptProperties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws IOException, ServletException {
 
-        TokenResponse token = resolveToken(request); // header 우선, 없으면 쿠키
+        TokenResponse token = resolveToken(request);
         String accessToken = nullIfBlank(token.accessToken());
         String refreshToken = nullIfBlank(token.refreshToken());
 
@@ -70,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Refresh 토큰 검증 후 새 토큰 발급 및 인증 컨텍스트/쿠키/헤더 갱신
+     * Refresh 토큰 검증 후 새 토큰 발급 및 인증 컨텍스트/헤더 갱신
      */
     private boolean tryRefreshAndAuthenticate(String refreshToken, HttpServletResponse response) {
         if (!StringUtils.hasText(refreshToken)) return false;
@@ -87,11 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             TokenResponse newToken = tokenEncryptService.createNewToken(userId);
             if (newToken == null || !StringUtils.hasText(newToken.accessToken())) return false;
 
-            // 응답 쿠키 갱신
-            TokenIssueFunction.issueToken(newToken, jwtEncryptProperties, response);
-
-            // (선택) Authorization 헤더도 갱신 → 다운스트림에서 헤더만 읽는 경우 대비
-            response.setHeader(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + newToken.accessToken());
+            TokenIssueFunction.issueToken(newToken, response);
 
             return true;
         } catch (Exception ex) {
@@ -109,37 +100,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 헤더 우선 → 쿠키 fallback
+     * 요청 헤더에서 토큰 정보 추출
      */
     private TokenResponse resolveToken(HttpServletRequest request) {
-        String accessFromHeader = resolveAccessFromHeader(request);
-        String accessFromCookie = resolveCookie(request, ACCESS_COOKIE);
-        String refreshFromCookie = resolveCookie(request, REFRESH_COOKIE);
+        String access = nullIfBlank(request.getHeader(ACCESS_HEADER));
+        String refresh = nullIfBlank(request.getHeader(REFRESH_HEADER));
 
-        String access = StringUtils.hasText(accessFromHeader) ? accessFromHeader : accessFromCookie;
         return TokenResponse.builder()
                 .accessToken(access)
-                .refreshToken(refreshFromCookie)
+                .refreshToken(refresh)
                 .build();
-    }
-
-    private String resolveAccessFromHeader(HttpServletRequest request) {
-        String bearer = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearer) && bearer.startsWith(BEARER_PREFIX)) {
-            return bearer.substring(BEARER_PREFIX.length());
-        }
-        return null;
-    }
-
-    private String resolveCookie(HttpServletRequest request, String name) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) return null;
-        for (Cookie c : cookies) {
-            if (name.equals(c.getName())) {
-                return nullIfBlank(c.getValue());
-            }
-        }
-        return null;
     }
 
     private String nullIfBlank(String s) {
