@@ -67,12 +67,15 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(a ->
                         a.requestMatchers(
                                         BASE_URL + "/auth/login" ,
+                                        BASE_URL + "/auth/refresh" ,
                                         BASE_URL + "/user",
+//                                        BASE_URL + "/geo/*" ,
                                         "/oauth2/**",
                                         "/login/oauth2/**",
                                         "/login/oauth2/code/",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**"
+
                                 )
                                 .permitAll()
                                 .anyRequest().authenticated()

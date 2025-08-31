@@ -28,22 +28,23 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler, CustomCor
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         String method = request.getMethod();
         StringBuffer requestURL = request.getRequestURL();
+
         Object originURL = request.getAttribute("url");
+        ErrorCode errorCode = (ErrorCode) request.getAttribute("exception");
+
         log.info(LogMarker.SERVICE.getMarker(), "SECURITY ERROR || METHOD: {} || URL : {} || ORIGIN URL: {}", method, requestURL, originURL);
 
         String origin = request.getHeader("Origin"); // 요청한 Origin 가져오기
 
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(errorCode.getHttpStatus().value());
 
         addHeaders(origin, response);
 
         PrintWriter writer = response.getWriter();
 
-        ErrorCode accessNotValid = ErrorCode.ACCESS_NOT_VALID;
-
         ResponseResult responseResult = ResponseResult.of(
-                ResponseHeader.of(false, accessNotValid.getCode(), accessNotValid.getMessage()),
+                ResponseHeader.of(false, errorCode.getCode(), errorCode.getMessage()),
                 null);
 
         String responseMessage = objectMapper.writeValueAsString(responseResult);

@@ -35,6 +35,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint,
         String method = request.getMethod();
         StringBuffer requestURL = request.getRequestURL();
         Object originURL = request.getAttribute("url");
+
         log.info(LogMarker.SERVICE.getMarker(), "SECURITY ERROR || METHOD: {} || URL : {} || ORIGIN URL: {}", method, requestURL, originURL);
 
         String origin = request.getHeader("Origin"); // 요청한 Origin 가져오기
@@ -42,33 +43,35 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint,
         addHeaders(origin, response);
 
         response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-
         response.setContentType("application/json");
 
         PrintWriter writer = response.getWriter();
         String responseMessage;
         if (!endpointChecker.isEndpointExist(request)) {
-            ErrorCode resourceNotFound = ErrorCode.RESOURCE_NOT_FOUND;
-            ResponseResult responseResult = ResponseResult.of(
-                    ResponseHeader.of(false, resourceNotFound.getCode(), resourceNotFound.getMessage()),
-                    null);
 
-            responseMessage = objectMapper.writeValueAsString(responseResult);
-        } else {
-            ErrorCode errorCode;
-
-            Object exceptionRequest = request.getAttribute("exception");
-            if (exceptionRequest != null) {
-                errorCode = (ErrorCode) request.getAttribute("exception");
-            } else {
-                errorCode = ErrorCode.ACCESS_TOKEN_NOT_VALID;
-            }
+            ErrorCode errorCode = ErrorCode.RESOURCE_NOT_FOUND;
+            response.setStatus(errorCode.getHttpStatus().value());
 
             ResponseResult responseResult = ResponseResult.of(
                     ResponseHeader.of(false, errorCode.getCode(), errorCode.getMessage()),
                     null);
 
+            responseMessage = objectMapper.writeValueAsString(responseResult);
+        } else {
+
+            ErrorCode errorCode = (ErrorCode) request.getAttribute("exception");
+
+            if(errorCode == null) {
+                errorCode = ErrorCode.ACCESS_TOKEN_NOT_VALID;
+            }
+
+            response.setStatus(errorCode.getHttpStatus().value());
+
+            ResponseResult responseResult = ResponseResult.of(
+                    ResponseHeader.of(false, errorCode.getCode(), errorCode.getMessage()),
+                    null);
+
+            response.setStatus(errorCode.getHttpStatus().value());
             responseMessage = objectMapper.writeValueAsString(responseResult);
         }
 

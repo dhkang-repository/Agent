@@ -190,5 +190,5 @@ clean {
 
 bootJar {
     exclude("infra/**")
-    archiveFileName = 'genPubAgent.war'
+    archiveFileName = 'Agent.jar'
 }

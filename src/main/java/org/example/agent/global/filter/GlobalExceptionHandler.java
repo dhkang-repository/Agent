@@ -140,7 +140,7 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ex.getErrorCode();
         String message = ex.getMessage();
 
-        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
+        return ResponseEntity.status(errorCode.getHttpStatus()).contentType(MediaType.APPLICATION_JSON)
                 .body(ResponseResult.of(ResponseHeader.of(false, errorCode.getCode(), errorCode.getMessage()), message));
     }
 

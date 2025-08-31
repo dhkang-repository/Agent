@@ -81,7 +81,7 @@ public class AuthUserController {
             }
     )
     @GetMapping("/user/me")
-    @PreAuthorize("hasAnyRole('SS', 'L1')")
+    @PreAuthorize("hasAnyRole('SS', 'S1','L1')")
     public ResponseEntity<?> findAuthUsers(@AuthenticationPrincipal SecurityAuthUser securityUser) {
 
         AuthUserEntity authUserEntity = authUserService.findById(securityUser.getUserId());

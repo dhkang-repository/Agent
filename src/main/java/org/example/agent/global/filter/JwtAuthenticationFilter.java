@@ -11,7 +11,6 @@ import org.example.agent.global.exception.JwtAuthenticationException;
 import org.example.agent.global.security.TokenEncryptService;
 import org.example.agent.global.security.response.TokenResponse;
 import org.example.agent.global.util.AuthInfoLoggingFunction;
-import org.example.agent.global.util.TokenIssueFunction;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,6 +18,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -44,16 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authenticateWith(accessToken);
             }
         } catch (ExpiredJwtException e) {
-            // 2) Access 만료 → Refresh로 재발급 시도
-            boolean refreshed = tryRefreshAndAuthenticate(refreshToken, response);
-            if (!refreshed) {
-                // 재발급 실패 시에만 예외 처리
-                request.setAttribute("exception", ErrorCode.ACCESS_TOKEN_EXPIRED);
-                request.setAttribute("url", request.getRequestURL());
-                throw new JwtAuthenticationException.JwtExpiredValid(e);
-            }
-            response.sendRedirect(request.getContextPath() + "/dashboard");
-            // 재발급 성공했으면 예외 없이 계속 진행
+            request.setAttribute("exception", ErrorCode.ACCESS_TOKEN_EXPIRED);
+            request.setAttribute("url", request.getRequestURL());
+            throw new JwtAuthenticationException.JwtExpiredValid(e);
         } catch (Exception e) {
             // 3) 기타 토큰 문제
             request.setAttribute("url", request.getRequestURL());
@@ -67,24 +60,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     /**
      * Refresh 토큰 검증 후 새 토큰 발급 및 인증 컨텍스트/헤더 갱신
      */
-    private boolean tryRefreshAndAuthenticate(String refreshToken, HttpServletResponse response) {
+    private boolean validRefreshToken(String refreshToken, HttpServletResponse response) {
         if (!StringUtils.hasText(refreshToken)) return false;
 
         try {
-            if (!tokenEncryptService.validateToken(refreshToken)) return false;
-
-            // refresh 토큰의 소유자 식별
-            Authentication authFromRefresh = tokenEncryptService.getAuthentication(refreshToken);
-            SecurityContextHolder.getContext().setAuthentication(authFromRefresh);
-            Long userId = AuthInfoLoggingFunction.logAuthenticationAndGetUserId(authFromRefresh);
-
-            // 새 토큰 발급 (필요 시 refresh도 회전)
-            TokenResponse newToken = tokenEncryptService.createNewToken(userId);
-            if (newToken == null || !StringUtils.hasText(newToken.accessToken())) return false;
-
-            TokenIssueFunction.issueToken(newToken, response);
-
-            return true;
+            return tokenEncryptService.validateToken(refreshToken);
         } catch (Exception ex) {
             return false;
         }
@@ -103,13 +83,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 요청 헤더에서 토큰 정보 추출
      */
     private TokenResponse resolveToken(HttpServletRequest request) {
-        String access = nullIfBlank(request.getHeader(ACCESS_HEADER));
-        String refresh = nullIfBlank(request.getHeader(REFRESH_HEADER));
+        try {
+            String access = Objects.requireNonNull(nullIfBlank(request.getHeader(ACCESS_HEADER))).replace("Bearer ", "");
+            String refresh = Objects.requireNonNull(nullIfBlank(request.getHeader(REFRESH_HEADER))).replace("Bearer ", "");;
 
-        return TokenResponse.builder()
-                .accessToken(access)
-                .refreshToken(refresh)
-                .build();
+            return TokenResponse.builder()
+                    .accessToken(access)
+                    .refreshToken(refresh)
+                    .build();
+        } catch (Exception e) {
+            return TokenResponse.builder().build();
+        }
     }
 
     private String nullIfBlank(String s) {
