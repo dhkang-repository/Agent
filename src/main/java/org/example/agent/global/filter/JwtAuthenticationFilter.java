@@ -25,7 +25,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String ACCESS_HEADER = "ACCESS_TOKEN";
-    private static final String REFRESH_HEADER = "RefreshToken";
+    private static final String REFRESH_HEADER = "REFRESH_TOKEN";
 
     private final TokenEncryptService tokenEncryptService;
 
