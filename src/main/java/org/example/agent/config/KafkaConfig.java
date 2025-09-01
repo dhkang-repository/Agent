@@ -1,6 +1,6 @@
 package org.example.agent.config;
 
-import org.example.agent.domain.geo.dto.GeoReportDto;
+import org.example.agent.domain.geo.dto.GeoRawDto;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,12 +17,12 @@ import java.util.Map;
 public class KafkaConfig {
 
     @Bean
-    public KafkaTemplate<String, GeoReportDto> kafkaTemplate(ProducerFactory<String, GeoReportDto> pf) {
+    public KafkaTemplate<String, GeoRawDto> kafkaTemplate(ProducerFactory<String, GeoRawDto> pf) {
         return new KafkaTemplate<>(pf);
     }
 
     @Bean
-    public ProducerFactory<String, GeoReportDto> producerFactory(KafkaProperties props) {
+    public ProducerFactory<String, GeoRawDto> producerFactory(KafkaProperties props) {
         Map<String, Object> cfg = new HashMap<>(props.buildProducerProperties());
         // (필요 시 추가 옵션 주입)
         return new DefaultKafkaProducerFactory<>(cfg);

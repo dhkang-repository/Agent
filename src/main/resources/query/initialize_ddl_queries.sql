@@ -105,3 +105,29 @@ CREATE TABLE IF NOT EXISTS tbl_coin_day_candle
     KEY idx_market_date (market, candle_date)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
+
+
+
+DROP TABLE if exists tbl_geo_raw;
+CREATE TABLE tbl_geo_raw
+(
+    user_id  BIGINT         NOT NULL,
+    event_dt DATETIME(3)    NOT NULL,        -- 파티션/쿼리용
+    lat      DECIMAL(9, 6)  NOT NULL,        -- -90~90
+    lon      DECIMAL(10, 6) NOT NULL,        -- -180~180
+    acc      FLOAT          NULL,            -- meters (정밀도 크지 않으면 FLOAT 권장)
+    heading  FLOAT          NULL,            -- degrees
+    speed    FLOAT          NULL,            -- m/s
+    location POINT          NOT NULL,
+
+    -- PK는 파티션 컬럼(event_time) 반드시 포함
+    PRIMARY KEY (user_id, event_dt),
+
+    SPATIAL INDEX sp_idx_location (location) -- 근접/폴리곤/바운딩박스 검색
+)
+    ENGINE = InnoDB
+    PARTITION BY RANGE (TO_DAYS(event_dt))(
+        PARTITION p2025_09 VALUES LESS THAN (TO_DAYS('2025-10-01')),
+        PARTITION p2025_10 VALUES LESS THAN (TO_DAYS('2025-11-01')),
+        PARTITION pmax VALUES LESS THAN MAXVALUE
+        );

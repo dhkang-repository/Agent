@@ -2,6 +2,8 @@ package org.example.agent.global.util;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.agent.global.security.response.TokenResponse;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class TokenIssueFunction {
 
@@ -13,6 +15,7 @@ public class TokenIssueFunction {
 
         response.setHeader(ACCESS_HEADER, tokenResponse.accessToken());
         response.setHeader(REFRESH_HEADER, tokenResponse.refreshToken());
+
     }
 
 }
