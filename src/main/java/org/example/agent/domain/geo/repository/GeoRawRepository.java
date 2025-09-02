@@ -4,5 +4,7 @@ import org.example.agent.entity.loc.GeoRawEntity;
 import org.example.agent.entity.loc.GeoRawId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface GeoRawRepository extends JpaRepository<GeoRawEntity, GeoRawId> {
+public interface GeoRawRepository
+        extends JpaRepository<GeoRawEntity, GeoRawId>, GeoRawQueryDsl {
+
 }
